@@ -2,98 +2,81 @@
 
 const mongoose = require('mongoose');
 const Product = mongoose.model('Product');
+const repository = require('../repositories/product-repository')
 
-exports.get = (req, res, next) => {
-  Product.find({
-    active: true
-  }, 'title price slug')
-    .then(data => {
-      res.status(200).send(data);
-    }).catch(err => {
-      res.status(400).send(err);
+exports.get = async (req, res, next) => {
+  try {
+    var data = await repository.get();
+    res.status(200).send(data);
+  } catch (err) {
+    res.status(500).send({
+      message: 'Internal Server Error'
     });
+  }
 }
-
-exports.getBySlug = (req, res, next) => {
-  Product.findOne({
-    slug: req.params.slug,
-    active: true
-  }, 'title description price slug')
-    .then(data => {
-      res.status(200).send(data);
-    }).catch(err => {
-      res.status(400).send(err);
+exports.getBySlug = async (req, res, next) => {
+  try {
+    var data = await repository.getBySlug(req.params.slug);
+    res.status(200).send(data);
+  } catch (err) {
+    res.status(500).send({
+      message: 'Internal Server Error'
     });
+  }
 }
-
-exports.getById = (req, res, next) => {
-  Product
-    .findById(req.params.id)
-    .then(data => {
-      res.status(200).send(data);
-    }).catch(err => {
-      res.status(400).send(err);
+exports.getById = async (req, res, next) => {
+  try {
+    var data = await repository.getById(req.params.id);
+    res.status(200).send(data);
+  } catch (err) {
+    res.status(500).send({
+      message: 'Internal Server Error'
     });
+  }
 }
-
-exports.getByTag = (req, res, next) => {
-  Product.find({
-    tags: req.params.tags,
-    active: true
-  }, 'title price slug')
-    .then(data => {
-      res.status(200).send(data);
-    }).catch(err => {
-      res.status(400).send(err);
+exports.getByTag = async (req, res, next) => {
+  try {
+    var data = await repository.getByTag(req.params.tag);
+    res.status(200).send(data);
+  } catch (err) {
+    res.status(500).send({
+      message: 'Error getting product from repository'
     });
+  }
 }
-
-exports.post = ('/', (req, res, next) => {
-  const product = new Product(req.body);
-  product.save()
-    .then(x => {
-      res.status(201).send({
-        message: 'Produto cadastrado com sucesso!'
-      });
-    }).catch(err => {
-      res.status(400).send({
-        message: 'Falha ao cadastrar o produto',
-        data: err
-      });
+exports.post = async (req, res, next) => {
+  try {
+    await repository.create(req.body)
+    res.status(201).send({
+      message: 'Product created successfully'
     });
-});
-
-exports.put = (req, res, next) => {
-  Product
-    .findByIdAndUpdate(req.params.id, {
-      $set: {
-        title: req.body.title,
-        description: req.body.description,
-        price: req.body.price
-      }
-    }).then(x => {
-      res.status(200).send({
-        message: 'Produto atualizado com sucesso!'
-      });
-    }).catch(err => {
-      res.status(400).send({
-        message: 'Falha ao atualizar o produto',
-        data: err
-      });
+  } catch (err) {
+    res.status(500).send({
+      message: 'Error creating product'
     });
-};
-
-exports.delete = (req, res, next) => {
-  Product
-    .findOneAndRemove(req.params.id)
-    .then(x => {
-      res.status(200).send({
-        message: 'Produto removido com sucesso!'
-      });
-    }).catch(err => {
-      res.status(400).send({
-        message: 'Falha ao remover o produto',
-        data: err
-      });
+  }
+}
+exports.put = async (req, res, next) => {
+  await repository.update(req.params.id, req.body)
+  try {
+    res.status(200).send({
+      message: 'success'
     });
-};
+  } catch (err) {
+    res.status(500).send({
+      message: 'Error updating'
+    });
+  }
+}
+exports.delete = async (req, res, next) => {
+  try {
+    repository.delete(req.body.id)
+    res.status(200).send({
+      message: 'Deleted'
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: 'Error deleting repository'
+    });
+  }
+}
